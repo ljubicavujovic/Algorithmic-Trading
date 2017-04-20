@@ -1,6 +1,5 @@
 from sklearn import svm
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 
 
@@ -15,9 +14,11 @@ def get_mask(X, time):
 
 
 def make_model(result, time):
-
     y = result['Label']
-    X = result[['Feature_1', 'Feature_2', 'Feature_3', 'Feature_4', 'Industry_ID']]
+    y.fillna(method='bfill', inplace=True)
+    X = result[['Feature_1', 'Feature_2', 'Feature_3', 'Feature_4', 'Industry_ID', 'Beta']]
+    X.fillna(method='pad', inplace=True)
+    X.fillna(method='bfill', inplace=True)
     mask = get_mask(X, time)
     train_X = X[mask]
     train_y = y[mask]
@@ -26,14 +27,12 @@ def make_model(result, time):
     clf = svm.SVC()
     clf.fit(train_X, train_y)
     predictions = clf.predict(test_X)
-
-    train_precision = sum(clf.predict(train_X) == train_y)*1.0/len(train_y)
-    test_precision = sum(test_y == predictions)*1.0/len(test_y)
+    train_precision = sum(clf.predict(train_X) == train_y) * 1.0 / len(train_y)
+    test_precision = sum(test_y == predictions) * 1.0 / len(test_y)
     return train_precision, test_precision
 
 
 def cross_validation(result):
-
     train = []
     test = []
     time = range(17, 22)
@@ -47,4 +46,12 @@ def cross_validation(result):
     plt.ylabel('Precision of model')
     plt.title('Precision of train and test dataset depending on the time until trained')
     plt.show()
+    return train, test
+
+
+def feature_correlation(df, features=None):
+    if features is not None:
+        df = df[features]
+    correlation_matrix = df.corr()
+    return correlation_matrix
 

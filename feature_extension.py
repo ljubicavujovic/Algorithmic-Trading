@@ -1,5 +1,6 @@
 import pandas as pd
 import pickle
+import numpy as np
 
 
 def add_feature_industry():
@@ -45,28 +46,47 @@ def add_feature_industry():
             df['Industry'] = "Telecommunication Services"
             df['Industry_ID'] = 7
             df.to_csv('stock_dfs/{}.csv'.format(ticker))
-    return df
 
 
+def calc_beta(df):
+    np_array = df.values
+    s = np_array[:, 0]
+    m = np_array[:, 1]
 
-# working ...
-def add_features_locality(df, size):
-    min_l = df['Low'].shift(-1)
-    max_l = df['High'].shift(-1)
-    for i in range(1, size):
-        if df['Low'].shift(-i) < min_l:
-            min_l = df['Low']
-        if df['High'].shift(-i) < max_l:
-            max_l = df['High']
-    df['Feature_5'] = (df['Open'] - df['Open'].shift(-1))/(max_l - min_l)
+    covariance = np.cov(s, m)
+    beta = covariance[0, 1]/covariance[1, 1]
+    return beta
 
 
+def rolling_apply(df, period, func, min_periods=None):
+    if min_periods is None:
+        min_periods = period
+    result = pd.Series(np.nan, index=df.index)
+
+    for i in range(1, len(df)+1):
+        sub_df = df.iloc[max(i-period, 0):i, :]
+        if len(sub_df) >= min_periods:
+            idx = sub_df.index[-1]
+            result[idx] = func(sub_df)
+
+    return result
 
 
+def add_beta(period=25):
+    with open("sp25tickers.pickle", "rb") as f:
+        tickers = pickle.load(f)
 
-
-
-
-
-
-
+    df = pd.DataFrame()
+    df_index = pd.read_csv('stock_dfs/SPX.csv', index_col=0)
+    df['Market'] = (df_index['Open'] - df_index['Open'].mean()) / (df_index['Open'].max() - df_index['Open'].min())
+    df['Market'].fillna(method='pad', inplace=True)
+    df['Market'].fillna(method='bfill', inplace=True)
+    for ticker in tickers:
+        df_stock = pd.read_csv('stock_dfs/{}.csv'.format(ticker), index_col=0)
+        df['Stock'] = (df_stock['Open'] - df_stock['Open'].mean()) / (df_stock['Open'].max() - df_stock['Open'].min())
+        beta = rolling_apply(df, period=period, func=calc_beta, min_periods=3)
+        beta.name = 'Beta'
+        df_stock['Beta'] = beta
+        df_stock['Beta'].fillna(method='pad', inplace=True)
+        df_stock['Beta'].fillna(method='bfill', inplace=True)
+        df_stock.to_csv('stock_dfs/{}.csv'.format(ticker))

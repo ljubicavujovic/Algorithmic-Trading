@@ -1,6 +1,5 @@
 import datetime as dt
 import matplotlib.pyplot as plt
-from matplotlib import style
 import numpy as np
 import os
 import re
@@ -10,6 +9,8 @@ import requests
 import csv
 import model_all
 import feature_extension as fe
+
+
 def select_tickers():
     # Read ticker list
     selected_tickers = []
@@ -64,6 +65,10 @@ def get_data(reload_sp25=False):
         else:
             print('Already have {}'.format(ticker))
 
+    df = get_google_finance_intraday('SPX')
+    df.fillna(method='pad', inplace=True)
+    df.to_csv('stock_dfs/SPX.csv')
+
 
 def get_features(df):
     df['Feature_1'] = (df['Open'] - df['Open'].shift(-1))/df['Open'].shift(-1)
@@ -101,10 +106,11 @@ def visualize_data(ticker_list=["AMZN","BAC"]):
 
 
 def main():
-    get_data(True)
-    join_data()
-    result = fe.add_feature_industry()
-    model_all.cross_validation(result)
+    get_data()
+    fe.add_feature_industry()
+    fe.add_beta()
+    result = join_data()
+    train, test = model_all.cross_validation(result)
 
 
 if __name__ == "__main__":
