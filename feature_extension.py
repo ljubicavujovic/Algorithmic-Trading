@@ -52,7 +52,6 @@ def calc_beta(df):
     np_array = df.values
     s = np_array[:, 0]
     m = np_array[:, 1]
-
     covariance = np.cov(s, m)
     beta = covariance[0, 1]/covariance[1, 1]
     return beta
@@ -68,7 +67,6 @@ def rolling_apply(df, period, func, min_periods=None):
         if len(sub_df) >= min_periods:
             idx = sub_df.index[-1]
             result[idx] = func(sub_df)
-
     return result
 
 

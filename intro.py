@@ -7,7 +7,6 @@ import pandas as pd
 import pickle
 import requests
 import csv
-import model_all
 import feature_extension as fe
 
 
@@ -109,9 +108,7 @@ def main():
     get_data()
     fe.add_feature_industry()
     fe.add_beta()
-    result = join_data()
-    train, test = model_all.cross_validation(result)
-
+    join_data()
 
 if __name__ == "__main__":
     main()
