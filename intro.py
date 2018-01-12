@@ -105,7 +105,7 @@ def visualize_data(ticker_list=["AMZN","BAC"]):
 
 
 def main():
-    get_data()
+    # get_data()
     fe.add_feature_industry()
     fe.add_beta()
     join_data()

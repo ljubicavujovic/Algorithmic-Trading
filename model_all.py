@@ -48,7 +48,7 @@ def prepare_data(result, time):
 
 def make_model_svm(result, time):
     train_X, train_y, test_X, test_y = prepare_data(result, time)
-    clf = svm.SVC()
+    clf = svm.SVC(C=0.8)
     clf.fit(train_X, train_y)
     predictions = clf.predict(test_X)
     train_precision = sum(clf.predict(train_X) == train_y) * 1.0 / len(train_y)
@@ -69,7 +69,7 @@ def make_model_random_forest(result, time):
 
 def make_model_gradient_boosting(result, time):
     train_X, train_y, test_X, test_y = prepare_data(result, time)
-    clf = GradientBoostingClassifier(n_estimators=50)
+    clf = GradientBoostingClassifier(n_estimators=250, learning_rate=0.1)
     clf.fit(train_X, train_y)
     predictions = clf.predict(test_X)
     train_precision = sum(clf.predict(train_X) == train_y) * 1.0 / len(train_y)
@@ -79,7 +79,7 @@ def make_model_gradient_boosting(result, time):
 
 def make_model_ada_boosting(result, time):
     train_X, train_y, test_X, test_y = prepare_data(result, time)
-    clf = AdaBoostClassifier(n_estimators=50)
+    clf = AdaBoostClassifier(n_estimators=250, learning_rate=0.1)
     clf.fit(train_X, train_y)
     train_precision = clf.score(train_X, train_y)
     test_precision = clf.score(test_X, test_y)
@@ -151,7 +151,6 @@ def results():
 
 def testing_beta():
     periods = range(10, 40, 5)
-    print periods
     start = dt.datetime(2017, 4, 19, 17)
     times = [start + dt.timedelta(minutes=30) * i for i in range(0, 10)]
     timeticks = [t.strftime("%H:%M") for t in times]
@@ -172,3 +171,5 @@ def testing_beta():
         plt.xticks(times, timeticks, rotation=15, size=8)
         plt.savefig('Precision of train and test dataset depending on the time until trained for Beta period = {}'.format(period))
         plt.close()
+
+results()
